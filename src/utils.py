@@ -1,7 +1,11 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+from src.model import light_model
+import tensorflow as tf
+from tensorflow import keras
 
 def load_data(path = "./data/preprocessed_train_data.csv"):
 
@@ -19,6 +23,31 @@ def load_data(path = "./data/preprocessed_train_data.csv"):
     return x_train, y_train, x_test, y_test
 
 def load_predict_data(path = "./data/preprocessed_test_data.csv"):
-    test_data = pd.read_csv(path,index=None)
-    X = np.array(test_data)
+    test_data = pd.read_csv(path)
+    X = np.array(test_data.iloc[:,1:])
     return X
+    
+def get_k_fold_valid(get_model):
+    train_data = pd.read_csv("./data/preprocessed_train_data.csv")
+
+    X = train_data.iloc[:,1:-1]
+    X = np.array(X)
+    y = train_data["price"]
+    y = np.array(y)
+
+    kfold = KFold(n_splits=5, random_state=2021,shuffle=True)
+
+    rmse_score = []
+    
+    # K-fold evaluation
+    for train, test in kfold.split(X, y):
+        model = get_model(X[train], y[train], X[test], y[test], is_train=False)
+        print(model.summary())
+        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=30)
+        history = model.fit(X[train], y[train], batch_size=64, epochs=400, validation_split=0.2, callbacks=[callback])
+        result = model.evaluate(X[test], y[test])
+        print(result)
+        rmse_score.append(result[1])
+
+    print(rmse_score)
+    print(np.mean(np.array(rmse_score)))
