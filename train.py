@@ -1,4 +1,4 @@
-from src.utils import load_data,load_predict_data,get_k_fold_valid
+from src.utils import load_data,load_predict_data,get_k_fold_valid,tree_k_fold_valid
 from src.model import *
 from keras.models import load_model
 import pandas as pd
@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 if __name__ == '__main__':
     if sys.argv[1] == "train":
         x_train, y_train, x_test, y_test = load_data()
-        light_model(x_train, y_train, x_test, y_test, is_train=True)
+        baseline_model(x_train, y_train, x_test, y_test, is_train=True)
         
     if sys.argv[1] == "predict":
         X_predict = load_predict_data()
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         
     if sys.argv[1] == "forest":
         x_train, y_train, x_test, y_test = load_data()
-        regr = RandomForestRegressor(n_estimators = 100, random_state=2021)
+        regr = RandomForestRegressor(n_estimators = 200, random_state=2021)
         regr.fit(x_train, y_train)
         y_predict = regr.predict(x_test)
         print(mean_squared_error(y_test,y_predict, squared=False))
@@ -60,10 +60,12 @@ if __name__ == '__main__':
             get_k_fold_valid(light_model)
         if sys.argv[2] == "baseline":
             get_k_fold_valid(baseline_model)
+        if sys.argv[2] == "gbr":
+            tree_k_fold_valid()
             
     if sys.argv[1] == "gbr":
-        regr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=16,                       min_samples_split=8, random_state =2021) 
-        x_train, y_train, x_test, y_test = load_data()
+        regr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=16, min_samples_split=8, random_state=2021) 
+        x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
         regr.fit(x_train, y_train)
         y_predict = regr.predict(x_test)
         print(mean_squared_error(y_test,y_predict, squared=False))
@@ -72,18 +74,19 @@ if __name__ == '__main__':
         
     if sys.argv[1] == "blend":
         x_train, y_train, x_test, y_test = load_data()
+        x_train_tree, _ , x_test_tree, _ = load_data("./data/preprocessed_tree_train_data.csv")
         
         model = load_model("./models/baseline_model.h5")
         dl_predict = np.squeeze(model.predict(x_test))
         print(model.summary())
         
-        gbr = GradientBoostingRegressor(n_estimators=300, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=15,                                              min_samples_split=10, random_state = 2021) 
-        gbr.fit(x_train, y_train)
-        gbr_predict = gbr.predict(x_test)
+        gbr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=15,                                              min_samples_split=10, random_state = 2021) 
+        gbr.fit(x_train_tree, y_train)
+        gbr_predict = gbr.predict(x_test_tree)
         
-        forest = RandomForestRegressor(n_estimators = 256, random_state=2021)
-        forest.fit(x_train, y_train)
-        forest_predict = forest.predict(x_test)
+        forest = RandomForestRegressor(n_estimators = 200, random_state=2021)
+        forest.fit(x_train_tree, y_train)
+        forest_predict = forest.predict(x_test_tree)
         
         y_predict = 0.3 * gbr_predict + 0.3 * forest_predict + 0.4 * dl_predict
         
@@ -101,7 +104,8 @@ if __name__ == '__main__':
         print(dl_predict[0:10])
         
         X_predict = load_predict_data()
-        y_result = 0.3 * gbr.predict(X_predict) + 0.3 * forest.predict(X_predict) + 0.4 * np.squeeze(model.predict(X_predict))
+        X_predict_tree = load_predict_data("./data/preprocessed_tree_test_data.csv")
+        y_result = 0.3 * gbr.predict(X_predict_tree) + 0.3 * forest.predict(X_predict_tree) + 0.4 * np.squeeze(model.predict(X_predict))
         result = pd.DataFrame({
         "Id": range(0, y_result.shape[0]),
         "Predicted": y_result})
