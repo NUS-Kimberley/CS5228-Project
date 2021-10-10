@@ -15,7 +15,7 @@ def load_data(path = "./data/preprocessed_train_data.csv"):
 
     train_data = pd.read_csv(path)
 
-    X = train_data.iloc[:,1:-1]
+    X = train_data.iloc[:,0:-1]
     X = np.array(X)
     y = train_data["price"]
     y = np.array(y)
@@ -28,7 +28,7 @@ def load_data(path = "./data/preprocessed_train_data.csv"):
 
 def load_predict_data(path = "./data/preprocessed_test_data.csv"):
     test_data = pd.read_csv(path)
-    X = np.array(test_data.iloc[:,1:])
+    X = np.array(test_data.iloc[:,0:])
     return X
     
 def get_k_fold_valid(get_model):

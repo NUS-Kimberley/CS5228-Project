@@ -8,21 +8,31 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 
+def train():
+    x_train, y_train, x_test, y_test = load_data()
+    #baseline_model(x_train, y_train, x_test, y_test, is_train=True)
+    model = get_emb_model(x_train, y_train, x_test, y_test, is_train=True)
+    return model
+
+def predict(model):
+    X_predict = load_predict_data()
+    y_predict = model.predict(X_predict)
+    y_predict = np.squeeze(y_predict)
+    print(y_predict[0:10], y_predict.shape)
+    result = pd.DataFrame({
+    "Id": range(0, y_predict.shape[0]),
+    "Predicted": y_predict})
+    result.to_csv("./data/submission.csv",index=None) 
+
 if __name__ == '__main__':
     if sys.argv[1] == "train":
-        x_train, y_train, x_test, y_test = load_data()
-        baseline_model(x_train, y_train, x_test, y_test, is_train=True)
-        
+        model = train()
+        predict(model)
+
     if sys.argv[1] == "predict":
-        X_predict = load_predict_data()
-        model = load_model("./models/baseline_model.h5")
-        y_predict = model.predict(X_predict)
-        y_predict = np.squeeze(y_predict)
-        print(y_predict[0:10], y_predict.shape)
-        result = pd.DataFrame({
-        "Id": range(0, y_predict.shape[0]),
-        "Predicted": y_predict})
-        result.to_csv("./data/submission.csv",index=None)
+        model = get_emb_model()
+        model.load_weights("./models/emb_model")
+        predict(model)
         
     if sys.argv[1] == "check":
         x_train, y_train, x_test, y_test = load_data()
