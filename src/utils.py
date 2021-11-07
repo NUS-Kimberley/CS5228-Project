@@ -46,9 +46,9 @@ def get_k_fold_valid(get_model):
     # K-fold evaluation
     for train, test in kfold.split(X, y):
         model = get_model(X[train], y[train], X[test], y[test], is_train=False)
-        print(model.summary())
-        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=25)
-        history = model.fit(X[train], y[train], batch_size=64, epochs=300, validation_split=0.2, callbacks=[callback])
+
+        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=35)
+        history = model.fit(X[train], y[train], batch_size=64, epochs=400, validation_split=0.2, callbacks=[callback])
         result = model.evaluate(X[test], y[test])
         print(result)
         rmse_score.append(result[1])
@@ -59,25 +59,3 @@ def get_k_fold_valid(get_model):
 
 def tree_k_fold_valid(get_model):
     pass
-#     train_data = pd.read_csv("./data/preprocessed_tree_train_data.csv")
-
-#     X = train_data.iloc[:,1:-1]
-#     X = np.array(X)
-#     y = train_data["price"]
-#     y = np.array(y)
-
-#     kfold = KFold(n_splits=5, random_state=2021,shuffle=True)
-
-#     rmse_score = []
-    
-#     # K-fold evaluation
-#     for train, test in kfold.split(X, y):
-#         regr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=16, min_samples_split=8, random_state=2021) 
-#         regr.fit(x_train, y_train)
-#         y_predict = regr.predict(x_test)
-#         print(mean_squared_error(y_test,y_predict, squared=False))
-
-#         rmse_score.append(result[1])
-
-#     print(rmse_score)
-#     print(np.mean(np.array(rmse_score)))

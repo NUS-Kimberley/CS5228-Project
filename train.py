@@ -1,5 +1,5 @@
 from src.utils import load_data,load_predict_data,get_k_fold_valid,tree_k_fold_valid
-from src.model import *
+from src.model import baseline_model, light_model, get_emb_model
 from keras.models import load_model
 import pandas as pd
 import numpy as np
@@ -24,65 +24,60 @@ def predict(model):
     "Predicted": y_predict})
     result.to_csv("./data/submission.csv",index=None) 
 
-if __name__ == '__main__':
-    if sys.argv[1] == "train":
-        model = train()
-        predict(model)
+def check_result():
+    _, _, x_test, y_test = load_data()
+    model = load_model("./models/baseline_model.h5")
+    print(model.predict(x_test)[0:15])
+    print(y_test[0:15])
 
-    if sys.argv[1] == "predict":
-        model = get_emb_model()
-        model.load_weights("./models/emb_model")
-        predict(model)
-        
-    if sys.argv[1] == "check":
-        x_train, y_train, x_test, y_test = load_data()
-        model = load_model("./models/baseline_model.h5")
-        print(model.predict(x_test)[0:15])
-        print(y_test[0:15])
-        
-    if sys.argv[1] == "tree":
-        x_train, y_train, x_test, y_test = load_data()
-        tree = DecisionTreeRegressor()
-        tree.fit(x_train, y_train)
-        y_predict = tree.predict(x_test)
-        print(mean_squared_error(y_test,y_predict, squared=False))
-        print(y_predict[0:15])
-        print(y_test[0:15])
-        
-    if sys.argv[1] == "forest":
-        x_train, y_train, x_test, y_test = load_data()
-        regr = RandomForestRegressor(n_estimators = 200, random_state=2021)
-        regr.fit(x_train, y_train)
-        y_predict = regr.predict(x_test)
-        print(mean_squared_error(y_test,y_predict, squared=False))
-        print(y_predict[0:15])
-        print(y_test[0:15])
-        X_predict = load_predict_data()
-        y_result = regr.predict(X_predict)
-        result = pd.DataFrame({
-        "Id": range(0, y_result.shape[0]),
-        "Predicted": y_result})
-        result.to_csv("./data/forest_submission.csv",index=None)
-        
-    if sys.argv[1] == "kfold":
-        x_train, y_train, x_test, y_test = load_data()
-        if sys.argv[2] == "light":
-            get_k_fold_valid(light_model)
-        if sys.argv[2] == "baseline":
-            get_k_fold_valid(baseline_model)
-        if sys.argv[2] == "gbr":
-            tree_k_fold_valid()
-            
-    if sys.argv[1] == "gbr":
-        regr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=16, min_samples_split=8, random_state=2021) 
-        x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
-        regr.fit(x_train, y_train)
-        y_predict = regr.predict(x_test)
-        print(mean_squared_error(y_test,y_predict, squared=False))
-        print(y_predict[0:15])
-        print(y_test[0:15])
-        
-    if sys.argv[1] == "blend":
+def get_and_train_tree_model():
+    x_train, y_train, x_test, y_test = load_data()
+    tree = DecisionTreeRegressor()
+    tree.fit(x_train, y_train)
+    y_predict = tree.predict(x_test)
+    print(mean_squared_error(y_test,y_predict, squared=False))
+    print(y_predict[0:15])
+    print(y_test[0:15])
+    return tree
+
+def get_and_train_forest():
+    x_train, y_train, x_test, y_test = load_data()
+    regr = RandomForestRegressor(n_estimators = 200, random_state=2021)
+    regr.fit(x_train, y_train)
+    y_predict = regr.predict(x_test)
+    print(mean_squared_error(y_test,y_predict, squared=False))
+    print(y_predict[0:15])
+    print(y_test[0:15])
+    X_predict = load_predict_data()
+    y_result = regr.predict(X_predict)
+    result = pd.DataFrame({
+    "Id": range(0, y_result.shape[0]),
+    "Predicted": y_result})
+    result.to_csv("./data/forest_submission.csv",index=None)
+    return regr
+
+def get_and_train_gbr():
+    regr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=16, min_samples_split=8, random_state=2021) 
+    x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
+    regr.fit(x_train, y_train)
+    y_predict = regr.predict(x_test)
+    print(mean_squared_error(y_test,y_predict, squared=False))
+    print(y_predict[0:15])
+    print(y_test[0:15])
+    return regr
+
+
+def k_fold(model):
+    if model == "light":
+        get_k_fold_valid(light_model)
+    if model == "baseline":
+        get_k_fold_valid(baseline_model)
+    if model == "emb":
+        get_k_fold_valid(get_emb_model)
+    if model == "gbr":
+        tree_k_fold_valid()
+
+def get_blend_model():
         x_train, y_train, x_test, y_test = load_data()
         x_train_tree, _ , x_test_tree, _ = load_data("./data/preprocessed_tree_train_data.csv")
         
@@ -120,6 +115,29 @@ if __name__ == '__main__':
         "Id": range(0, y_result.shape[0]),
         "Predicted": y_result})
         result.to_csv("./data/blend_submission.csv",index=None)
+
+
+if __name__ == '__main__':
+    if sys.argv[1] == "train":
+        model = train()
+        predict(model)
+
+    if sys.argv[1] == "predict":
+        model = get_emb_model()
+        model.load_weights("./models/emb_model")
+        predict(model)
         
+    if sys.argv[1] == "check":
+        check_result()
 
+    if sys.argv[1] == "tree":
+        get_and_train_tree_model()
 
+    if sys.argv[1] == "forest":
+        get_and_train_forest()
+  
+    if sys.argv[1] == "gbr":
+        get_and_train_gbr()
+        
+    if sys.argv[1] == "blend":
+        get_blend_model()
