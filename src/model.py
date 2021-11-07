@@ -77,7 +77,7 @@ def baseline_model(x_train=None, y_train=None, x_test=None, y_test=None, is_trai
 
 
 class emb_model(tf.keras.Model):
-    def __init__(self, x_train):
+    def __init__(self):
         super().__init__(self)
         self.emb1 = Dense(activation='selu', units=10)
         self.emb2 = Dense(activation='selu', units=3)
@@ -110,7 +110,7 @@ class emb_model(tf.keras.Model):
         return x
 
 def get_emb_model(x_train=None, y_train=None, x_test=None, y_test=None, is_train=False):
-    model = emb_model(x_train)
+    model = emb_model()
     print(model)
     callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=35)
     lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-3,decay_steps=10000,decay_rate=0.95)
