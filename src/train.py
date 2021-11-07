@@ -32,40 +32,70 @@ def check_result():
     print(model.predict(x_test)[0:15])
     print(y_test[0:15])
 
-def train_and_get_tree_model():
-    x_train, y_train, x_test, y_test = load_data()
+def train_and_get_tree_model(x_train=None, y_train=None, x_test=None, y_test=None, csv=True):
+    if x_train is None:
+        x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
+
     tree = DecisionTreeRegressor()
     tree.fit(x_train, y_train)
-    y_predict = tree.predict(x_test)
-    print(mean_squared_error(y_test,y_predict, squared=False))
-    print(y_predict[0:15])
-    print(y_test[0:15])
+    
+    if x_test is not None:
+        y_predict = tree.predict(x_test)
+        print(mean_squared_error(y_test,y_predict, squared=False))
+        print(y_predict[0:15])
+        print(y_test[0:15])
+
+    if csv == True:
+        X_predict = load_predict_data()
+        y_result = tree.predict(X_predict)
+        result = pd.DataFrame({
+        "Id": range(0, y_result.shape[0]),
+        "Predicted": y_result})
+        result.to_csv("./data/tree_submission.csv",index=None)
     return tree
 
-def train_and_get_forest():
-    x_train, y_train, x_test, y_test = load_data()
+def train_and_get_forest(x_train=None, y_train=None, x_test=None, y_test=None, csv=True):
+    if x_train is None:
+        x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
+
     regr = RandomForestRegressor(n_estimators = 200, random_state=2021)
     regr.fit(x_train, y_train)
-    y_predict = regr.predict(x_test)
-    print(mean_squared_error(y_test,y_predict, squared=False))
-    print(y_predict[0:15])
-    print(y_test[0:15])
-    X_predict = load_predict_data()
-    y_result = regr.predict(X_predict)
-    result = pd.DataFrame({
-    "Id": range(0, y_result.shape[0]),
-    "Predicted": y_result})
-    result.to_csv("./data/forest_submission.csv",index=None)
+
+    if x_test is not None:
+        y_predict = regr.predict(x_test)
+        print(mean_squared_error(y_test,y_predict, squared=False))
+        print(y_predict[0:15])
+        print(y_test[0:15])
+
+    if csv == True:
+        X_predict = load_predict_data()
+        y_result = regr.predict(X_predict)
+        result = pd.DataFrame({
+        "Id": range(0, y_result.shape[0]),
+        "Predicted": y_result})
+        result.to_csv("./data/forest_submission.csv",index=None)
     return regr
 
-def train_and_get_gbr():
+def train_and_get_gbr(x_train=None, y_train=None, x_test=None, y_test=None, csv=True):
+    if x_train is None:
+        x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
+
     regr = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=8, max_features='sqrt', min_samples_leaf=16, min_samples_split=8, random_state=2021) 
-    x_train, y_train, x_test, y_test = load_data("./data/preprocessed_tree_train_data.csv")
     regr.fit(x_train, y_train)
-    y_predict = regr.predict(x_test)
-    print(mean_squared_error(y_test,y_predict, squared=False))
-    print(y_predict[0:15])
-    print(y_test[0:15])
+
+    if x_test is not None:
+        y_predict = regr.predict(x_test)
+        print(mean_squared_error(y_test,y_predict, squared=False))
+        print(y_predict[0:15])
+        print(y_test[0:15])
+
+    if csv == True:
+        X_predict = load_predict_data()
+        y_result = regr.predict(X_predict)
+        result = pd.DataFrame({
+        "Id": range(0, y_result.shape[0]),
+        "Predicted": y_result})
+        result.to_csv("./data/gbr_submission.csv",index=None)
     return regr
 
 
