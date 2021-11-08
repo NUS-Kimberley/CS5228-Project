@@ -66,7 +66,7 @@ def baseline_model(x_train=None, y_train=None, x_test=None, y_test=None, is_trai
     print(model.summary())
     
     if is_train:
-        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=35)
+        callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=30)
         history = model.fit(x_train, y_train, batch_size=64, epochs=400, validation_split=0.2, callbacks=[callback])
         result = model.evaluate(x_test, y_test)
         print(result)
