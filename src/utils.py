@@ -55,7 +55,3 @@ def get_k_fold_valid(get_model):
 
     print(rmse_score)
     print(np.mean(np.array(rmse_score)))
-
-
-def tree_k_fold_valid(get_model):
-    pass
