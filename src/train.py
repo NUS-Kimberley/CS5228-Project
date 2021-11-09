@@ -1,5 +1,5 @@
 from src.utils import load_data,load_predict_data,get_k_fold_valid
-from src.model import baseline_model, light_model, get_emb_model
+from src.model import baseline_model, light_model, get_emb_model, get_widedeep_model, get_emb_model_self_attention
 from keras.models import load_model
 import pandas as pd
 import numpy as np
@@ -15,6 +15,10 @@ def train_and_get_deep_learning_model(model_type):
         model = baseline_model(x_train, y_train, x_test, y_test, is_train=True)
     elif model_type == "emb":
         model = get_emb_model(x_train, y_train, x_test, y_test, is_train=True)
+    elif model_type == "simple_widedeep":
+        model = get_widedeep_model(x_train, y_train, x_test, y_test, is_train=True)
+    elif model_type == "emb_self_attention":
+        model = get_emb_model_self_attention(x_train, y_train, x_test, y_test, is_train=True)
     return model
 
 def predict(model):
@@ -39,7 +43,7 @@ def train_and_get_tree_model(x_train=None, y_train=None, x_test=None, y_test=Non
 
     tree = DecisionTreeRegressor(max_depth=60)
     tree.fit(x_train, y_train)
-    
+
     if x_test is not None:
         y_predict = tree.predict(x_test)
         print(mean_squared_error(y_test,y_predict, squared=False))
@@ -107,6 +111,10 @@ def k_fold(model):
         get_k_fold_valid(baseline_model)
     if model == "emb":
         get_k_fold_valid(get_emb_model)
+    if model == "simple_widedeep":
+        get_k_fold_valid(get_widedeep_model)
+    if model == "emb_self_attention":
+        get_k_fold_valid(get_emb_model_self_attention)
 
 
 def grid_search(model, parameters, file = "./data/preprocessed_train_data.csv"):
@@ -139,30 +147,30 @@ def get_ensemble_model(dl_model = None):
 
     dl_predict = np.squeeze(model.predict(x_test))
     # print(model.summary())
-    
+
     gbr = GradientBoostingRegressor(n_estimators=400, learning_rate=0.15, max_features='sqrt', random_state = 2021) 
     gbr.fit(x_train, y_train)
     gbr_predict = gbr.predict(x_test)
-    
+
     forest = RandomForestRegressor(n_estimators = 200, max_depth=20, random_state=2021)
     forest.fit(x_train, y_train)
     forest_predict = forest.predict(x_test)
-    
+
     y_predict = 0.3 * gbr_predict + 0.3 * forest_predict + 0.4 * dl_predict
-    
+
     blend_score = mean_squared_error(y_test, y_predict, squared=False)
-    
+
     gbr_score = mean_squared_error(y_test, gbr_predict, squared=False)
     forest_score = mean_squared_error(y_test, forest_predict, squared=False)
     dl_score = mean_squared_error(y_test, dl_predict, squared=False)
-    
+
     print("gbr rmse: {}, forest rmse: {}, dl rmse: {}, ensemblee rmse: {}".format(gbr_score, forest_score, dl_score, blend_score))
-    
+
     # print(y_predict[0:10], y_test[0:10])
     # print(gbr_predict[0:10])
     # print(forest_predict[0:10])
     # print(dl_predict[0:10])
-    
+
     X_predict = load_predict_data()
     X_predict_tree = load_predict_data("./data/preprocessed_test_data.csv")
     y_result = 0.3 * gbr.predict(X_predict_tree) + 0.3 * forest.predict(X_predict_tree) + 0.4 * np.squeeze(model.predict(X_predict))
@@ -181,7 +189,7 @@ if __name__ == '__main__':
         model = get_emb_model()
         model.load_weights("./models/emb_model")
         predict(model)
-        
+
     if sys.argv[1] == "check":
         check_result()
 
@@ -190,9 +198,9 @@ if __name__ == '__main__':
 
     if sys.argv[1] == "forest":
         train_and_get_forest()
-  
+
     if sys.argv[1] == "gbr":
         train_and_get_gbr()
-        
+
     if sys.argv[1] == "blend":
-        get_ensemble_model()
+        get_ensemble_model() 
