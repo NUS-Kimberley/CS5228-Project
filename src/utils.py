@@ -17,7 +17,11 @@ def load_data(path = "./data/preprocessed_train_data.csv"):
 
     X = train_data.iloc[:,0:-1]
     X = np.array(X)
-    y = train_data["price"]
+    y = None
+    if 'prince' in train_data.columns:
+        y = train_data["price"]
+    else:
+        y = train_data.iloc[:,-1]
     y = np.array(y)
 
     print(X.shape, y.shape)
