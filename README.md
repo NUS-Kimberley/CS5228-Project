@@ -25,3 +25,7 @@ You can run the `project-task2-notebook-track2.ipynb` to perform the data mining
 You can run the `EDA_task3.ipynb` to run the EDA adn get the traning and test data for task 3.
 
 You can run the `project-task3-notebook.ipynb` to train the data mining models for task 3.
+
+### Evaluation
+
+You can run the  `evaluation.ipynb` to check the result of evaluation for task 1, 2, and 3.
