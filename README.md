@@ -28,4 +28,4 @@ You can run the `project-task3-notebook.ipynb` to train the data mining models f
 
 ### Evaluation
 
-You can run the  `evaluation.ipynb` to check the result of evaluation for task 1, 2, and 3.
+You can run the  `evaluation.ipynb` to check the result of evaluation for the models in task 1 and 3.
